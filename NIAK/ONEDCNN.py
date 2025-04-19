@@ -36,7 +36,8 @@ class ONEDCNN(nn.Module):
 
     def forward(self, x):
         # Adjust input shape for PyTorch Conv1d (channels first)
-        x = x.permute(0, 2, 1)
+        #x = x.permute(0, 2, 1)
+        x = x.unsqueeze(1)
         x = F.elu(self.conv1(x))
         x = self.maxpool(x)
         x = torch.flatten(x, 1)

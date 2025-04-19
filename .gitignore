@@ -5,7 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
-
+traintest1
+trained_split*
 # Distribution / packaging
 .Python
 build/
