@@ -41,10 +41,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 16
 
 
-for i in range(1,6):
+for i in range(1,2):
     # Load your model
     model = ONEDCNN().to(device)
-    model.load_state_dict(torch.load(f"models/trained_split{i}", map_location=device))
+    model.load_state_dict(torch.load(f"models/1trained_split{i}", map_location=device))
     model.eval()
 
     # Load your datasets

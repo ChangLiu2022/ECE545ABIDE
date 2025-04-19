@@ -6,7 +6,7 @@ from ONEDCNN import ONEDCNN
 from CSVloader import RowWiseCSVLoader
 
 
-for i in range(1,6):
+for i in range(1,2):
     # Assuming ONEDCNN class is defined as you posted
     model = ONEDCNN()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -14,7 +14,7 @@ for i in range(1,6):
 
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 
     # Dataset and DataLoader
@@ -22,7 +22,7 @@ for i in range(1,6):
     loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
     # Training loop
-    n_epochs = 15
+    n_epochs = 25
     for epoch in range(n_epochs):
         model.train()
         running_loss = 0.0
@@ -57,4 +57,4 @@ for i in range(1,6):
 
         print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {running_loss/len(loader):.4f}")
     
-    torch.save(model.state_dict(), f"models/trained_split{i}")
+    torch.save(model.state_dict(), f"models/1trained_split{i}")
