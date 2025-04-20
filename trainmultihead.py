@@ -8,12 +8,12 @@ from multihead1 import SelfAttentionClassifier
 import os
 
 configurations = [
-    {"seq": "128:182", "self": False, "dropout":False}
+    {"seq": "128-182", "self": False, "dropout":False}
 ]
 for config in configurations:
     for i in range(1,6):
         # Assuming ONEDCNN class is defined as you posted
-        featuredims = list(map(int, config["seq"].split(":")))
+        featuredims = list(map(int, config["seq"].split("-")))
         
         if config["self"]:
             model = SelfAttentionClassifier(featuredims, dropout = config["dropout"])
@@ -29,7 +29,7 @@ for config in configurations:
 
 
         # Dataset and DataLoader
-        dataset = RowWiseCSVLoader2(f"traintest2/{config["seq"]}/combined_v2_X2_train_fold_{i-1}.csv",
+        dataset = RowWiseCSVLoader2(f"traintest2/{config["seq"]}/combined_v3_X3_train_fold_{i-1}.csv",
                                     f"NIAK/traintest1/y_train_fold_{i}.csv", featuredims.copy())
         loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
