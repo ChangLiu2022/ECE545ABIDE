@@ -29,8 +29,8 @@ for config in configurations:
 
 
         # Dataset and DataLoader
-        dataset = RowWiseCSVLoader2(f"traintest2/{config["seq"]}/combined_v3_X3_train_fold_{i-1}.csv",
-                                    f"NIAK/traintest1/y_train_fold_{i}.csv", featuredims.copy())
+        dataset = RowWiseCSVLoader2(f"github/ECE545ABIDE/traintest2/{config['seq']}/combined_v3_X3_X_train_fold_{i-1}.csv",
+                                    f"github/ECE545ABIDE/NIAK/traintest1/y_train_fold_{i}.csv", featuredims.copy())
         loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
         # Training loop
@@ -73,6 +73,6 @@ for config in configurations:
 
             print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {running_loss/len(loader):.4f}")
             
-        folder1 = f"mainmodels/{config["seq"]}-{config["self"]}-{config["dropout"]}"
+        folder1 = f"github/ECE545ABIDE/mainmodels/{config['seq']}-{config['self']}-{config['dropout']}"
         os.makedirs(folder1, exist_ok=True)
         torch.save(model.state_dict(), f"{folder1}/trained_split{i}")
