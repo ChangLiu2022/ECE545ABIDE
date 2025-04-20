@@ -4,6 +4,12 @@ from torch.utils.data import DataLoader
 from CSVloader2 import RowWiseCSVLoader2
 from multihead import LearnedQueryAttentionClassifier
 
+import pickle
+#main_folder = "github/ECE545ABIDE/" # if you are Chang
+main_folder = ""
+
+
+
 def evaluate(model, dataloader, criterion):
     model.eval()
     total_loss = 0.0
@@ -36,32 +42,46 @@ def evaluate(model, dataloader, criterion):
 
 # Assuming ONEDCNN class is defined somewhere
 
+
+# --- Load from file using pickle ---
+with open('configs.pkl', 'rb') as f:
+    things_to_test = pickle.load(f)
 # Hyperparameters and device setup
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 16
+print("things testing:")
+print(things_to_test)
+print()
+for thing in things_to_test:
+    for i in range(1,6):
+        # Load your model
+        featuredims = list(map(int, thing["seq"].split("-")))
+        folder1 = f"{main_folder}mainmodels/{thing['identifier']}{thing['seq']}-{thing['self']}-{thing['dropout']}"
+        model = LearnedQueryAttentionClassifier(featuredims).to(device)
+        model.load_state_dict(torch.load(f"{folder1}/trained_split{i}", map_location=device))
+        model.eval()
+
+        # Load your datasets
+        # Replace with your actual dataset and DataLoader logic
+        train_dataset = RowWiseCSVLoader2(
+            f"{main_folder}traintest2/{thing['identifier']}{thing['seq']}/{thing['prefix']}train_fold_{i-1}.csv",
+            f"{main_folder}NIAK/traintest1/y_train_fold_{i}.csv", featuredims.copy())
+        test_dataset = RowWiseCSVLoader2(
+            f"{main_folder}traintest2/{thing['identifier']}{thing['seq']}/{thing['prefix']}test_fold_{i-1}.csv",
+            f"{main_folder}NIAK/traintest1/y_train_fold_{i}.csv", featuredims.copy())
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+        # Loss function
+        criterion = nn.BCELoss()
 
 
-for i in range(1,2):
-    # Load your model
-    model = LearnedQueryAttentionClassifier([128,182]).to(device)
-    model.load_state_dict(torch.load(f"mainmodels/trained_split{i}", map_location=device))
-    model.eval()
 
-    # Load your datasets
-    # Replace with your actual dataset and DataLoader logic
-    train_dataset = RowWiseCSVLoader2(f"traintest2/combined_v2_X2_train_fold_{i-1}.csv", f"NIAK/traintest1/y_train_fold_{i}.csv")
-    test_dataset = RowWiseCSVLoader2(f"traintest2/combined_v2_X2_test_fold_{i-1}.csv", f"NIAK/traintest1/y_test_fold_{i}.csv")
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-
-    # Loss function
-    criterion = nn.BCELoss()
-
-
-
-    # Run diagnostics
-    train_loss, train_acc = evaluate(model, train_loader, criterion)
-    test_loss, test_acc = evaluate(model, test_loader, criterion)
-
-    print(f"{i}: Train Loss: {train_loss:.4f}, Train Accuracy: {train_acc*100:.2f}%")
-    print(f"{i}: Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc*100:.2f}%")
+        # Run diagnostics
+        train_loss, train_acc = evaluate(model, train_loader, criterion)
+        test_loss, test_acc = evaluate(model, test_loader, criterion)
+        print(folder1)
+        print(f"fold: {i-1}")
+        print(f"{i}: Train Loss: {train_loss:.4f}, Train Accuracy: {train_acc*100:.2f}%")
+        print(f"{i}: Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc*100:.2f}%")
+        print()

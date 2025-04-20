@@ -6,12 +6,26 @@ from CSVloader2 import RowWiseCSVLoader2 # for seq 128:182
 from multihead import LearnedQueryAttentionClassifier
 from multihead1 import SelfAttentionClassifier
 import os
+import pickle
+#main_folder = "github/ECE545ABIDE/" # if you are Chang
+main_folder = ""
 
-configurations = [
-    {"seq": "128-182", "self": False, "dropout":False}
-]
+
+with open('configs.pkl', 'rb') as f:
+    configurations = pickle.load(f)
+
+print("beginning training:")
+print("configurations:")
+print(configurations)
+print()
+
 for config in configurations:
+    print("training:")
+    print(config)
+    print()
+    
     for i in range(1,6):
+        print(f"training fold {i-1}")
         # Assuming ONEDCNN class is defined as you posted
         featuredims = list(map(int, config["seq"].split("-")))
         
@@ -29,8 +43,9 @@ for config in configurations:
 
 
         # Dataset and DataLoader
-        dataset = RowWiseCSVLoader2(f"github/ECE545ABIDE/traintest2/{config['seq']}/combined_v3_X3_X_train_fold_{i-1}.csv",
-                                    f"github/ECE545ABIDE/NIAK/traintest1/y_train_fold_{i}.csv", featuredims.copy())
+        dataset = RowWiseCSVLoader2(
+            f"{main_folder}traintest2/{config['identifier']}{config['seq']}/{config['prefix']}train_fold_{i-1}.csv",
+            f"{main_folder}NIAK/traintest1/y_train_fold_{i}.csv", featuredims.copy())
         loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
         # Training loop
@@ -71,8 +86,10 @@ for config in configurations:
 
                 running_loss += total_loss.item()
 
-            print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {running_loss/len(loader):.4f}")
+            if ((epoch+1) % 5 == 0):
+                print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {running_loss/len(loader):.4f}")
             
-        folder1 = f"github/ECE545ABIDE/mainmodels/{config['seq']}-{config['self']}-{config['dropout']}"
+        folder1 = f"{main_folder}mainmodels/{config['identifier']}{config['seq']}-{config['self']}-{config['dropout']}"
         os.makedirs(folder1, exist_ok=True)
         torch.save(model.state_dict(), f"{folder1}/trained_split{i}")
+        print()
