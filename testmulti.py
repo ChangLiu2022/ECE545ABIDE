@@ -8,8 +8,6 @@ import pickle
 main_folder = "github/ECE545ABIDE/" # if you are Chang
 #main_folder = ""
 
-
-
 def evaluate(model, dataloader, criterion):
     model.eval()
     total_loss = 0.0
@@ -17,16 +15,22 @@ def evaluate(model, dataloader, criterion):
     total = 0
 
     with torch.no_grad():
-       for d1input, d2inputs, labels in dataloader:
-            d1input, d2inputs, labels =  d1input.to(device), d2inputs.to(device), labels.to(device)
+        for batch in dataloader:
+            #for d1input, d2inputs, targets in loader:
+                #d1input, d2inputs, targets =  d1input.to(device), d2inputs.to(device), targets.to(device)
+
+
+            *inputs, labels = batch
+            # Move all inputs to device
+            inputs = [inp.to(device) for inp in inputs]
             #labels = labels.to(device).float().view(-1, 1)  # Ensure shape compatibility
 
-            outputs = model([d1input, d2inputs])
+            outputs = model(inputs)
             
             labels = labels-1
             labels = labels.float()
             loss = criterion(torch.sigmoid(outputs), labels)
-            total_loss += loss.item() * d1input.size(0)
+            total_loss += loss.item() * inputs[0].size(0)
 
             # Calculate predictions and accuracy
             #print(outputs)
