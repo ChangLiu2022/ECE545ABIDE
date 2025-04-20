@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class SelfAttentionClassifier(nn.Module):
-    def __init__(self, input_dims, embed_dim=4*256, num_heads=4, inner_embed_dim=256, dropout = False):
+    def __init__(self, input_dims, embed_dim=256, num_heads=4, inner_embed_dim=256, dropout = False):
         super().__init__()
         assert embed_dim % num_heads == 0, "embed_dim must be divisible by num_heads"
 

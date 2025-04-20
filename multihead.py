@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class LearnedQueryAttentionClassifier(nn.Module):
-    def __init__(self, input_dims, embed_dim=256, num_heads=4, num_queries=50, inner_embed_dim=256,  dropout = False):
+    def __init__(self, input_dims, embed_dim=256, num_heads=4, num_queries=5, inner_embed_dim=256,  dropout = False):
         super().__init__()
         assert embed_dim % num_heads == 0, "embed_dim must be divisible by num_heads"
 
@@ -41,7 +41,7 @@ class LearnedQueryAttentionClassifier(nn.Module):
         # === Modality Dropout ===
         if self.training and self.dropout:
             # Randomly select one modality to zero out
-            drop_idx = torch.randint(0, self.num_modalities, (1,)).item()
+            drop_idx = torch.randint(0, self.num_modals, (1,)).item()
             Z_list = [torch.zeros_like(z) if i == drop_idx else z 
                      for i, z in enumerate(Z_list)]
 

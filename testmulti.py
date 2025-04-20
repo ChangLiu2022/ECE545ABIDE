@@ -3,10 +3,10 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from CSVloader2 import RowWiseCSVLoader2
 from multihead import LearnedQueryAttentionClassifier
-
+from multihead1 import SelfAttentionClassifier
 import pickle
-#main_folder = "github/ECE545ABIDE/" # if you are Chang
-main_folder = ""
+main_folder = "github/ECE545ABIDE/" # if you are Chang
+#main_folder = ""
 
 
 
@@ -54,10 +54,16 @@ print(things_to_test)
 print()
 for thing in things_to_test:
     for i in range(1,6):
+        
         # Load your model
         featuredims = list(map(int, thing["seq"].split("-")))
         folder1 = f"{main_folder}mainmodels/{thing['identifier']}{thing['seq']}-{thing['self']}-{thing['dropout']}"
-        model = LearnedQueryAttentionClassifier(featuredims).to(device)
+        print(folder1)
+        print(f"fold: {i-1}")
+        if thing["self"]:
+            model = SelfAttentionClassifier(featuredims, dropout = thing["dropout"]).to(device)
+        else:
+            model = LearnedQueryAttentionClassifier(featuredims, dropout = thing["dropout"]).to(device)
         model.load_state_dict(torch.load(f"{folder1}/trained_split{i}", map_location=device))
         model.eval()
 
@@ -80,8 +86,7 @@ for thing in things_to_test:
         # Run diagnostics
         train_loss, train_acc = evaluate(model, train_loader, criterion)
         test_loss, test_acc = evaluate(model, test_loader, criterion)
-        print(folder1)
-        print(f"fold: {i-1}")
+
         print(f"{i}: Train Loss: {train_loss:.4f}, Train Accuracy: {train_acc*100:.2f}%")
         print(f"{i}: Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc*100:.2f}%")
         print()

@@ -7,8 +7,8 @@ from multihead import LearnedQueryAttentionClassifier
 from multihead1 import SelfAttentionClassifier
 import os
 import pickle
-#main_folder = "github/ECE545ABIDE/" # if you are Chang
-main_folder = ""
+main_folder = "github/ECE545ABIDE/" # if you are Chang
+#main_folder = ""
 
 
 with open('configs.pkl', 'rb') as f:
