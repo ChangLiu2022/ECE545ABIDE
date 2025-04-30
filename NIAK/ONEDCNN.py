@@ -3,11 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ONEDCNN(nn.Module):
-    def __init__(self, n_features = 19900, channels =1 , n_outputs= 2):
+    def __init__(self, n_features = 19900, channels =1 , n_outputs= 2, std = 0.1):
         super(ONEDCNN, self).__init__()
         self.conv1 = nn.Conv1d(in_channels=channels, out_channels=64, kernel_size=5)
         self.maxpool = nn.MaxPool1d(kernel_size=2)
-        
+        self.std = std
         # Calculate flattened dimension after conv and pooling
         self.flattened_dim = 64 * ((n_features - 4) // 2)
         
@@ -41,6 +41,9 @@ class ONEDCNN(nn.Module):
         x = F.elu(self.conv1(x))
         x = self.maxpool(x)
         x = torch.flatten(x, 1)
+        if self.training:
+            noise = torch.randn_like(x) * self.std
+            x = x*(1 + noise)
         x = self.dense_layers(x)
         return F.softmax(self.output(x), dim=1)
 
