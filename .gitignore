@@ -7,6 +7,9 @@ __pycache__/
 *.so
 traintest1
 trained_split*
+traintest.zip
+1trained_split*
+traintest2
 # Distribution / packaging
 .Python
 build/
