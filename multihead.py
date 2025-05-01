@@ -14,14 +14,32 @@ class LearnedQueryAttentionClassifier(nn.Module):
 
         self.num_modals = len(input_dims)
         # Step 1: Embedding networks per Zᵢ
+        # Step 1: Embedding networks per Zᵢ
+        # Step 1: Embedding networks per Zᵢ
+        # if self.dropout:
+        #     self.embedding_nets = nn.ModuleList([
+        #         nn.Sequential(
+        #             nn.Linear(d, inner_embed_dim),
+        #             nn.Sigmoid(),
+        #             nn.Dropout(0.2)
+        #         )
+        #         for d in input_dims
+        #     ])
+        # else:
+        #     self.embedding_nets = nn.ModuleList([
+        #         nn.Sequential(
+        #             nn.Linear(d, inner_embed_dim),
+        #             nn.Sigmoid(),
+        #         )
+        #         for d in input_dims
+        #     ])
         self.embedding_nets = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(d, inner_embed_dim),
-                nn.Sigmoid()
-            )
-            for d in input_dims
-        ])
-
+                nn.Sequential(
+                    nn.Linear(d, inner_embed_dim),
+                    nn.Sigmoid(),
+                )
+                for d in input_dims
+            ])
         # Step 2: Shared trainable projections (Wk, Wv)
         self.Wk = nn.Parameter(torch.randn(inner_embed_dim, embed_dim))
         self.Wv = nn.Parameter(torch.randn(inner_embed_dim, embed_dim))
@@ -38,11 +56,11 @@ class LearnedQueryAttentionClassifier(nn.Module):
         
         assert self.num_modals == len(Z_list)
         # === Modality Dropout ===
-        if self.training and self.dropout:
-            # Randomly select one modality to zero out
-            drop_idx = torch.randint(0, self.num_modals, (1,)).item()
-            Z_list = [torch.zeros_like(z) if i == drop_idx else z 
-                     for i, z in enumerate(Z_list)]
+        # if self.training and self.dropout:
+        #     # Randomly select one modality to zero out
+        #     drop_idx = torch.randint(0, self.num_modals, (1,)).item()
+        #     Z_list = [torch.zeros_like(z) if i == drop_idx else z 
+        #              for i, z in enumerate(Z_list)]
 
         # === Compute Keys and Values ===
         keys = []
@@ -50,6 +68,9 @@ class LearnedQueryAttentionClassifier(nn.Module):
 
         for z, embed_net in zip(Z_list, self.embedding_nets):
             e = embed_net(z)                             # (batch, inner_embed_dim)
+            if self.training and self.dropout:
+                noise = torch.randn_like(e) * 0.01
+                e = e*(1 + noise)
             k = e @ self.Wk                              # (batch, embed_dim)
             v = e @ self.Wv                              # (batch, embed_dim)
             keys.append(k)

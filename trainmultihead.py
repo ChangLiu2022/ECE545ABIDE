@@ -130,16 +130,16 @@ for config in configurations:
                 running_loss += total_loss.item()
             test_loss, test_acc = evaluate(model, test_loader, criterion)
             
-            #if test_acc > max_accuracy:
-            #    max_accuracy = test_acc
-            #    modelstate = model.state_dict()
-            #    print("saving model")
+            if test_acc > max_accuracy:
+               max_accuracy = test_acc
+               modelstate = model.state_dict()
+               print("saving model",  max_accuracy)
             if ((epoch+1) % 5 == 0):
                 print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {running_loss/len(loader):.4f}, test loss: {test_loss:.4f}, test accuracy: {test_acc*100:.2f}%")
             
         folder1 = f"{main_folder}mainmodels/{config['identifier']}{config['seq']}-{config['self']}-{config['dropout']}"
         os.makedirs(folder1, exist_ok=True)
 
-        torch.save(model.state_dict(), f"{folder1}/trained_split{i}")
-        #torch.save(modelstate, f"{folder1}/trained_split{i}")
+        #torch.save(model.state_dict(), f"{folder1}/trained_split{i}")
+        torch.save(modelstate, f"{folder1}/trained_split{i}")
         print()

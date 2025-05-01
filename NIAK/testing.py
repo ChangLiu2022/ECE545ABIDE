@@ -3,6 +3,11 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from CSVloader import RowWiseCSVLoader
 
+#main_folder = "github/ECE545ABIDE/NIAK/" # if you are Chang
+main_folder = ""
+
+
+
 def evaluate(model, dataloader, criterion):
     model.eval()
     total_loss = 0.0
@@ -44,20 +49,18 @@ BATCH_SIZE = 16
 for i in range(1,2):
     # Load your model
     model = ONEDCNN().to(device)
-    model.load_state_dict(torch.load(f"models/1trained_split{i}", map_location=device))
+    model.load_state_dict(torch.load(f"{main_folder}modelsrnd2/trained_split{i}", map_location=device))
     model.eval()
 
     # Load your datasets
     # Replace with your actual dataset and DataLoader logic
-    train_dataset = RowWiseCSVLoader(f"traintest1/X_train_fold_{i}.csv", f"traintest1/y_train_fold_{i}.csv")
-    test_dataset = RowWiseCSVLoader(f"traintest1/X_test_fold_{i}.csv", f"traintest1/y_test_fold_{i}.csv")
+    train_dataset = RowWiseCSVLoader(f"{main_folder}traintest1/X_train_fold_{i}.csv", f"{main_folder}traintest1/y_train_fold_{i}.csv")
+    test_dataset = RowWiseCSVLoader(f"{main_folder}traintest1/X_test_fold_{i}.csv", f"{main_folder}traintest1/y_test_fold_{i}.csv")
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Loss function
     criterion = nn.CrossEntropyLoss()
-
-
 
     # Run diagnostics
     train_loss, train_acc = evaluate(model, train_loader, criterion)

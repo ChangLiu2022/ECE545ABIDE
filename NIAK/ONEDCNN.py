@@ -42,8 +42,8 @@ class ONEDCNN(nn.Module):
         x = self.maxpool(x)
         x = torch.flatten(x, 1)
         if self.training:
-            noise = torch.randn_like(x) * self.std
-            x = x*(1 + noise)
+           noise = torch.randn_like(x) * self.std
+           x = x*(1 + noise)
         x = self.dense_layers(x)
         return F.softmax(self.output(x), dim=1)
 
