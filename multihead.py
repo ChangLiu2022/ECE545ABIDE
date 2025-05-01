@@ -16,30 +16,30 @@ class LearnedQueryAttentionClassifier(nn.Module):
         # Step 1: Embedding networks per Zᵢ
         # Step 1: Embedding networks per Zᵢ
         # Step 1: Embedding networks per Zᵢ
-        # if self.dropout:
-        #     self.embedding_nets = nn.ModuleList([
-        #         nn.Sequential(
-        #             nn.Linear(d, inner_embed_dim),
-        #             nn.Sigmoid(),
-        #             nn.Dropout(0.2)
-        #         )
-        #         for d in input_dims
-        #     ])
-        # else:
-        #     self.embedding_nets = nn.ModuleList([
-        #         nn.Sequential(
-        #             nn.Linear(d, inner_embed_dim),
-        #             nn.Sigmoid(),
-        #         )
-        #         for d in input_dims
-        #     ])
-        self.embedding_nets = nn.ModuleList([
+        if self.dropout:
+            self.embedding_nets = nn.ModuleList([
+                nn.Sequential(
+                    nn.Linear(d, inner_embed_dim),
+                    nn.Sigmoid(),
+                    nn.Dropout(0.2)
+                )
+                for d in input_dims
+            ])
+        else:
+            self.embedding_nets = nn.ModuleList([
                 nn.Sequential(
                     nn.Linear(d, inner_embed_dim),
                     nn.Sigmoid(),
                 )
                 for d in input_dims
             ])
+        # self.embedding_nets = nn.ModuleList([
+        #         nn.Sequential(
+        #             nn.Linear(d, inner_embed_dim),
+        #             nn.Sigmoid(),
+        #         )
+        #         for d in input_dims
+        #     ])
         # Step 2: Shared trainable projections (Wk, Wv)
         self.Wk = nn.Parameter(torch.randn(inner_embed_dim, embed_dim))
         self.Wv = nn.Parameter(torch.randn(inner_embed_dim, embed_dim))
