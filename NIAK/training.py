@@ -5,6 +5,37 @@ from torch.utils.data import DataLoader
 from ONEDCNN import ONEDCNN
 from CSVloader import RowWiseCSVLoader
 
+BATCH_SIZE = 16
+def evaluate(model, dataloader, criterion):
+    model.eval()
+    total_loss = 0.0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for inputs, labels in dataloader:
+            inputs = inputs.to(device)
+            #labels = labels.to(device).float().view(-1, 1)  # Ensure shape compatibility
+            labels = labels.to(device)
+            outputs = model(inputs)
+            
+            labels = labels-1
+            labels = labels.long()
+            loss = criterion(outputs, labels)
+            total_loss += loss.item() * inputs.size(0)
+
+            # Calculate predictions and accuracy
+            #print(outputs)
+            #assert False
+            #preds = torch.sigmoid(outputs)
+            predicted = (outputs[:,1] > 0.5).float()
+            correct += (predicted == labels).sum().item()
+            total += labels.size(0)
+
+    avg_loss = total_loss / total
+    accuracy = correct / total
+    return avg_loss, accuracy
+
 
 for i in range(1,2):
     # Assuming ONEDCNN class is defined as you posted
@@ -14,11 +45,14 @@ for i in range(1,2):
 
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
 
+    test_dataset = RowWiseCSVLoader(f"github/ECE545ABIDE/NIAK/traintest1/X_test_fold_{i}.csv", f"github/ECE545ABIDE/NIAK/traintest1/y_test_fold_{i}.csv")
+    #train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Dataset and DataLoader
-    dataset = RowWiseCSVLoader(f"traintest1/X_train_fold_{i}.csv", f"traintest1/y_train_fold_{i}.csv")
+    dataset = RowWiseCSVLoader(f"github/ECE545ABIDE/NIAK/traintest1/X_train_fold_{i}.csv", f"github/ECE545ABIDE/NIAK/traintest1/y_train_fold_{i}.csv")
     loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
     # Training loop
@@ -26,6 +60,8 @@ for i in range(1,2):
     for epoch in range(n_epochs):
         model.train()
         running_loss = 0.0
+        correct = 0
+        total = 0
 
         for inputs, targets in loader:
             inputs, targets = inputs.to(device), targets.to(device)
@@ -41,12 +77,12 @@ for i in range(1,2):
             loss = criterion(outputs, targets)
 
             # Apply L1 regularization to dense_layers[4]
-            #print(model.dense_layers[4].parameters())
-            l1_params = model.dense_layers[4].parameters()
-            l1_loss = model.l1_strength * sum(p.abs().sum() for p in l1_params)
+            # #print(model.dense_layers[4].parameters())
+            # l1_params = model.dense_layers[4].parameters()
+            # l1_loss = model.l1_strength * sum(p.abs().sum() for p in l1_params)
 
             # Combine losses
-            total_loss = loss + l1_loss
+            total_loss = loss 
 
             # Backpropagation
             optimizer.zero_grad()
@@ -55,6 +91,14 @@ for i in range(1,2):
 
             running_loss += total_loss.item()
 
-        print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {running_loss/len(loader):.4f}")
-    
-    torch.save(model.state_dict(), f"models/1trained_split{i}")
+            targets = targets-1
+            targets = targets.long()
+            
+            predicted = (outputs[:,1] > 0.5).float()
+            correct += (predicted == targets).sum().item()
+            total += targets.size(0)
+
+        print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {running_loss/len(loader):.4f}, acc : {correct/total}")
+        test_l,test_acc = evaluate(model, test_loader, criterion)
+        print(f"        Test Loss: {test_l:.4f}, Test Accuracy: {test_acc:.4f}")
+    torch.save(model.state_dict(), f"github/ECE545ABIDE/NIAK/models/1trained_split{i}")

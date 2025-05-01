@@ -6,7 +6,6 @@ class LearnedQueryAttentionClassifier(nn.Module):
     def __init__(self, input_dims, embed_dim=256, num_heads=4, num_queries=5, inner_embed_dim=256,  dropout = False):
         super().__init__()
         assert embed_dim % num_heads == 0, "embed_dim must be divisible by num_heads"
-
         self.dropout = dropout
         self.embed_dim = embed_dim
         self.num_heads = num_heads
