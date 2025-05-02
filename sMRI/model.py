@@ -34,7 +34,7 @@ class ASDModelBinary(nn.Module):
         self.bn7 = nn.BatchNorm2d(16)
         self.pool7 = nn.MaxPool2d(kernel_size=4, stride=1, padding=1)
         
-        self.dropout = nn.Dropout(0.6)
+        self.dropout = nn.Dropout(0.5)
         dummy = torch.zeros(1, *input_size)
         out = self._features(dummy)
         flattened_dim = out.view(-1).size(0)
@@ -43,33 +43,26 @@ class ASDModelBinary(nn.Module):
         self.fc2 = nn.Linear(128, 1)
     
     def _features(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.bn1(x))
-        x = F.relu(self.pool1(x))
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = self.pool1(x)
         
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.bn2(x))
-        x = F.relu(self.pool2(x))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = self.pool2(x)
         
-        x = F.relu(self.conv3(x))
-        x = F.relu(self.bn3(x))
-        x = F.relu(self.pool3(x))
+        x = F.relu(self.bn3(self.conv3(x)))
+        x = self.pool3(x)
         
-        x = F.relu(self.conv4(x))
-        x = F.relu(self.bn4(x))
-        x = F.relu(self.pool4(x))
+        x = F.relu(self.bn4(self.conv4(x)))
+        x = self.pool4(x)
         
-        x = F.relu(self.conv5(x))
-        x = F.relu(self.bn5(x))
-        x = F.relu(self.pool5(x))
+        x = F.relu(self.bn5(self.conv5(x)))
+        x = self.pool5(x)
         
-        x = F.relu(self.conv6(x))
-        x = F.relu(self.bn6(x))
-        x = F.relu(self.pool6(x))
+        x = F.relu(self.bn6(self.conv6(x)))
+        x = self.pool6(x)
         
-        x = F.relu(self.conv7(x))
-        x = F.relu(self.bn7(x))
-        x = F.relu(self.pool7(x))
+        x = F.relu(self.bn7(self.conv7(x)))
+        x = self.pool7(x)
         
         return x
 
@@ -79,7 +72,7 @@ class ASDModelBinary(nn.Module):
         
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
-        x = self.fc2(x).squeeze(1)  # no sigmoid
+        x = self.fc2(x).squeeze(1)
         return x
 
 
@@ -87,7 +80,6 @@ class OptimizedASDModel(nn.Module):
     def __init__(self, input_size=(1, 224, 224)):
         super(OptimizedASDModel, self).__init__()
         
-        # Reduced number of layers and simplified architecture
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -133,3 +125,53 @@ class OptimizedASDModel(nn.Module):
         x = self.dropout(F.relu(self.fc1(x)))
         x = self.fc2(x).squeeze(1)  # no sigmoid
         return x
+    
+class ASDModelBinary_Small(nn.Module):
+
+    def __init__(self, in_channels: int = 1):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(in_channels, 32, kernel_size=3, padding=1)
+        self.bn1   = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
+        self.bn2   = nn.BatchNorm2d(32)
+        self.pool1 = nn.MaxPool2d(2, 2)
+
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn3   = nn.BatchNorm2d(64)
+        self.conv4 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.bn4   = nn.BatchNorm2d(64)
+        self.pool2 = nn.MaxPool2d(2, 2)
+        self.drop2 = nn.Dropout2d(0.20)
+
+        self.conv5 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn5   = nn.BatchNorm2d(128)
+        self.conv6 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+        self.bn6   = nn.BatchNorm2d(128)
+        self.pool3 = nn.MaxPool2d(2, 2)
+        self.drop3 = nn.Dropout2d(0.30)
+
+        self.gap   = nn.AdaptiveAvgPool2d(1)
+        self.droph = nn.Dropout(0.55)
+        self.fc    = nn.Linear(128, 1)
+    def _features(self, x):
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = self.pool1(x)
+
+        x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.bn4(self.conv4(x)))
+        x = self.pool2(x)
+        x = self.drop2(x)
+
+        x = F.relu(self.bn5(self.conv5(x)))
+        x = F.relu(self.bn6(self.conv6(x)))
+        x = self.pool3(x)
+        x = self.drop3(x)
+
+        return x
+    def forward(self, x):
+        x = self._features(x)
+        x = self.gap(x).flatten(1)
+        x = self.droph(x)
+        return self.fc(x).squeeze(1)
